@@ -1,0 +1,71 @@
+/*
+ * Design tokens — final, from the prototype (architecture doc Appendix C).
+ * "Recreate faithfully; do not re-pick colours or corner radii."
+ *
+ * Dark mode is not part of this design (a couture atelier's own brand, not a themeable
+ * product) — one set of values, no @media (prefers-color-scheme) override.
+ */
+
+:root {
+  /* --- Brand -------------------------------------------------------------------------- */
+  --brand-carmim: #eb859d; /* primary accent: primary buttons, focus ring, action links, caret */
+  --brand-blue: #004172; /* institutional blue: active segment, headings, positive badges */
+  --brand-blue-900: #01223a; /* client names, card titles */
+  --brand-cream: #f9f7f3; /* text on carmim/blue */
+  --brand-gray: #a6a6a6; /* supporting text */
+
+  /* --- Surfaces ----------------------------------------------------------------------- */
+  --color-bg: #f9f7f3; /* page ground */
+  --color-surface: #ffffff; /* cards */
+  --color-text: #3f4b54; /* body text */
+  --color-divider: #e3ddd7; /* 1px borders; 2px for structural dividers */
+
+  /* --- Accent tints --------------------------------------------------------------------- */
+  --color-accent-100: #fdf3f6;
+  --color-accent-200: #fae1e8;
+  --color-accent-300: #f5c6d2;
+
+  /* --- Elevation ------------------------------------------------------------------------ */
+  --shadow-sm: 0 1px 3px rgba(32, 30, 29, 0.14); /* card hover */
+  --shadow-lg: 0 18px 48px rgba(32, 30, 29, 0.22); /* modal */
+
+  /* --- Type -------------------------------------------------------------------------- */
+  --font-heading: "Montserrat", sans-serif; /* weights 300–800 */
+  --font-body: "Montserrat", sans-serif;
+  --font-script: "Sacramento", cursive; /* the atelier text logotype ONLY — nowhere else */
+
+  /* Type scale: modal title -> uppercase kickers */
+  --font-size-1: 28px;
+  --font-size-2: 24px;
+  --font-size-3: 15px;
+  --font-size-4: 14px;
+  --font-size-5: 13px;
+  --font-size-6: 12px;
+  --font-size-7: 11px;
+  --font-size-8: 10px;
+  --kicker-letter-spacing: 0.08em; /* .08–.14em range; use up to .14em for the smallest kickers */
+
+  /* --- Spacing — 4px grid -------------------------------------------------------------- */
+  --space-1: 4px;
+  --space-2: 6px;
+  --space-3: 8px;
+  --space-4: 10px;
+  --space-5: 12px;
+  --space-6: 14px;
+  --space-7: 16px;
+  --space-8: 18px;
+  --space-9: 22px;
+  --space-10: 28px;
+
+  /* --- Shape ---------------------------------------------------------------------------- */
+  /* Radius is 0 everywhere. This is a brand decision, not an oversight — do not introduce
+     a --radius token that defaults to anything but 0. The only rounded shapes (avatar, the
+     circular payment badge, image slots) set border-radius: 50% / a fixed pill value
+     locally, deliberately, at the component that needs it. */
+  --radius-none: 0;
+
+  /* --- Structural hairlines --------------------------------------------------------- */
+  /* Card and KPI grids fake 1px rules with `gap: 2px` over this colour as the grid's own
+     background — reproduce that pattern rather than substituting individual borders. */
+  --grid-hairline-gap: 2px;
+}
