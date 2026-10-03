@@ -45,4 +45,25 @@ describe("supabase-js PKCE verifier storage wiring", () => {
 
     expect(storage.setItem).not.toHaveBeenCalled();
   });
+
+  it("puts the flow id on the redirect URL when appendPkceFlowIdToRedirects is enabled", async () => {
+    const client = createClient("https://test-project.supabase.co", "sb_publishable_test", {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+        flowType: "pkce",
+        storage: spyStorage(),
+        experimental: { appendPkceFlowIdToRedirects: true },
+      },
+    });
+
+    const { data, error } = await client.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: "http://localhost:5173/auth/callback", skipBrowserRedirect: true },
+    });
+
+    expect(error).toBeNull();
+    expect(data.url).toContain(encodeURIComponent("sb_flow_id="));
+  });
 });

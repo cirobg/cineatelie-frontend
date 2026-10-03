@@ -18,6 +18,11 @@ function createSupabaseClient(): SupabaseClient {
       // verifier, and autoRefreshToken is off, so the tokens go to POST /auth/exchange and
       // nothing else (ADR-006).
       persistSession: true,
+      // Puts a flow id on the callback URL so each callback is matched to its own verifier.
+      // Without it, two pending sign-ins (a retry, or two tabs) leave the callback guessing
+      // which verifier belongs to its code, and Supabase rejects the mismatch as "invalid
+      // flow state". Experimental in supabase-js, but it is the SDK's own fix for this case.
+      experimental: { appendPkceFlowIdToRedirects: true },
       autoRefreshToken: false,
       detectSessionInUrl: false,
       flowType: "pkce",
