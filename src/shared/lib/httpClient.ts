@@ -93,7 +93,9 @@ export async function apiFetch<T>(
     credentials: "include",
   });
 
-  if (response.status === 401 && !isRetry) {
+  // `/auth/*` never retries: a 401 from exchange or logout means the token itself was rejected,
+  // and a refresh would only replace the real error with "sessão expirou".
+  if (response.status === 401 && !isRetry && !path.startsWith("/auth/")) {
     try {
       await refreshAccessToken();
     } catch {
