@@ -14,17 +14,28 @@ function isCodeVerifierKey(key: string): boolean {
   return key.endsWith("-code-verifier");
 }
 
+// TEMP debug (dev only): logs key names, never values. Remove once the callback is confirmed.
+function debugLog(op: string, key: string) {
+  if (import.meta.env.DEV) {
+    console.info("[pkce-storage]", op, key);
+  }
+}
+
 export const pkceVerifierOnlyStorage = {
   getItem(key: string): string | null {
-    return isCodeVerifierKey(key) ? sessionStorage.getItem(key) : null;
+    if (!isCodeVerifierKey(key)) return null;
+    debugLog("get", key);
+    return sessionStorage.getItem(key);
   },
   setItem(key: string, value: string): void {
     if (isCodeVerifierKey(key)) {
+      debugLog("set", key);
       sessionStorage.setItem(key, value);
     }
   },
   removeItem(key: string): void {
     if (isCodeVerifierKey(key)) {
+      debugLog("remove", key);
       sessionStorage.removeItem(key);
     }
   },

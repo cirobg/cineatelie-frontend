@@ -20,6 +20,11 @@ export function AuthCallbackPage() {
 
     (async () => {
       try {
+        // TEMP debug (dev only): parameter names only, never values.
+        if (import.meta.env.DEV) {
+          console.info("[auth-callback] url params:", [...new URLSearchParams(window.location.search).keys()]);
+          console.info("[auth-callback] storage keys:", Object.keys(sessionStorage));
+        }
         const providerTokens = await authClient.handleCallback();
         const exchange = await apiFetch<ExchangeResponse>("/auth/exchange", {
           method: "POST",
