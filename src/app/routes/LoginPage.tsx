@@ -5,11 +5,11 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  async function handleSignIn(provider: "google" | "github" = "google") {
+  async function handleSignIn() {
     setError(null);
     setIsRedirecting(true);
     try {
-      await authClient.signIn(provider);
+      await authClient.signIn();
       // On success the browser navigates away to Google; nothing after this runs.
     } catch {
       setIsRedirecting(false);
@@ -34,7 +34,7 @@ export function LoginPage() {
       </h1>
       <button
         type="button"
-        onClick={() => handleSignIn("google")}
+        onClick={handleSignIn}
         disabled={isRedirecting}
         style={{
           padding: "var(--space-5) var(--space-9)",
@@ -47,17 +47,6 @@ export function LoginPage() {
       >
         {isRedirecting ? "Redirecionando…" : "Entrar com Google"}
       </button>
-      {import.meta.env.DEV && (
-        // TEMP: dev-only GitHub test for diagnosing the Google flow. Remove after the test.
-        <button
-          type="button"
-          onClick={() => handleSignIn("github")}
-          disabled={isRedirecting}
-          style={{ padding: "var(--space-3) var(--space-7)", fontSize: "var(--font-size-5)" }}
-        >
-          [dev] Testar com GitHub
-        </button>
-      )}
       {error && <p style={{ color: "var(--brand-carmim)" }}>{error}</p>}
     </div>
   );
