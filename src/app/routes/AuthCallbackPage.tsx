@@ -35,7 +35,8 @@ export function AuthCallbackPage() {
           useSessionStore.getState().setPermissions(permissions);
         }
         navigate("/", { replace: true });
-      } catch {
+      } catch (caught) {
+        console.error("OAuth callback failed:", caught);
         setError("Não foi possível concluir o login. Tente novamente.");
       }
     })();
