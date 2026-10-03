@@ -1,13 +1,24 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { parseImplicitCallbackHash, SupabaseAuthClient } from "../supabaseAuthClient";
+import { SupabaseAuthClient } from "../supabaseAuthClient";
 
-/** Only the shape SupabaseAuthClient calls, injected via the constructor: no env vars, no
- * network, no DOM. */
+// environment: "node" (vite.config.ts) has no `window` -- handleCallback reads
+// window.location.href to hand the full callback URL to exchangeCodeForSession, so it needs
+// at least this much of a browser global. A minimal stub rather than switching to jsdom,
+// since nothing else in this suite needs a DOM.
+beforeEach(() => {
+  vi.stubGlobal("window", {
+    location: { href: "https://test.example/auth/callback?code=abc123" },
+  });
+});
+
+/** Only the shape SupabaseAuthClient actually calls -- injected via the constructor so this
+ * suite never touches the real env vars or network, and never needs jsdom. */
 function fakeSupabaseClient(overrides: Partial<SupabaseClient["auth"]> = {}): SupabaseClient {
   return {
     auth: {
       signInWithOAuth: vi.fn().mockResolvedValue({ data: {}, error: null }),
+      exchangeCodeForSession: vi.fn(),
       signOut: vi.fn().mockResolvedValue({ error: null }),
       ...overrides,
     },
@@ -15,7 +26,7 @@ function fakeSupabaseClient(overrides: Partial<SupabaseClient["auth"]> = {}): Su
 }
 
 describe("SupabaseAuthClient.signIn", () => {
-  it("starts the Google OAuth flow", async () => {
+  it("starts the Google OAuth flow with the configured redirect", async () => {
     const supabase = fakeSupabaseClient();
     const client = new SupabaseAuthClient(supabase);
 
@@ -36,41 +47,43 @@ describe("SupabaseAuthClient.signIn", () => {
   });
 });
 
+describe("SupabaseAuthClient.handleCallback", () => {
+  it("returns the provider's access and refresh tokens from the session", async () => {
+    const supabase = fakeSupabaseClient({
+      exchangeCodeForSession: vi.fn().mockResolvedValue({
+        data: {
+          session: { access_token: "provider-access", refresh_token: "provider-refresh" },
+        },
+        error: null,
+      }),
+    });
+    const client = new SupabaseAuthClient(supabase);
+
+    const tokens = await client.handleCallback();
+
+    expect(tokens).toEqual({ accessToken: "provider-access", refreshToken: "provider-refresh" });
+  });
+
+  it("throws when the code exchange fails", async () => {
+    const supabase = fakeSupabaseClient({
+      exchangeCodeForSession: vi.fn().mockResolvedValue({
+        data: { session: null },
+        error: new Error("invalid code"),
+      }),
+    });
+    const client = new SupabaseAuthClient(supabase);
+
+    await expect(client.handleCallback()).rejects.toThrow("invalid code");
+  });
+});
+
 describe("SupabaseAuthClient.signOut", () => {
-  it("clears only local state, never a network call to the provider (ADR-006)", async () => {
+  it("clears only local state -- never a network call to the provider (ADR-006)", async () => {
     const supabase = fakeSupabaseClient();
     const client = new SupabaseAuthClient(supabase);
 
     await client.signOut();
 
     expect(supabase.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
-  });
-});
-
-describe("parseImplicitCallbackHash", () => {
-  it("returns the provider tokens from the redirect hash", () => {
-    const tokens = parseImplicitCallbackHash(
-      "#access_token=at-123&refresh_token=rt-456&expires_in=3600&token_type=bearer",
-    );
-
-    expect(tokens).toEqual({ accessToken: "at-123", refreshToken: "rt-456" });
-  });
-
-  it("accepts the hash without its leading #", () => {
-    const tokens = parseImplicitCallbackHash("access_token=at&refresh_token=rt");
-
-    expect(tokens.accessToken).toBe("at");
-  });
-
-  it("throws the reported error when Supabase redirects with one", () => {
-    expect(() =>
-      parseImplicitCallbackHash("#error=access_denied&error_description=user+cancelled"),
-    ).toThrow("user cancelled");
-  });
-
-  it("throws when either token is missing", () => {
-    expect(() => parseImplicitCallbackHash("#access_token=at")).toThrow(
-      "callback did not include the login tokens",
-    );
   });
 });

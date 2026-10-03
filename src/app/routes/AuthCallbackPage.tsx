@@ -8,8 +8,10 @@ import type { ExchangeResponse, PermissionsResponse } from "../../shared/lib/api
 export function AuthCallbackPage() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
-  // React 18 StrictMode double-invokes effects in dev without resetting refs, so this ref
-  // guard stops the callback from being processed twice.
+  // The OAuth code and the PKCE verifier are single-use. React 18 StrictMode intentionally
+  // double-invokes effects in dev (mount -> cleanup -> mount again) without resetting refs,
+  // so a ref guard -- not just an async "cancelled" flag -- is what actually stops the
+  // exchange from firing twice against a code that's already been consumed.
   const hasRun = useRef(false);
 
   useEffect(() => {
@@ -18,6 +20,11 @@ export function AuthCallbackPage() {
 
     (async () => {
       try {
+        // TEMP debug (dev only): parameter names only, never values.
+        if (import.meta.env.DEV) {
+          console.info("[auth-callback] url params:", [...new URLSearchParams(window.location.search).keys()]);
+          console.info("[auth-callback] storage keys:", Object.keys(sessionStorage));
+        }
         const providerTokens = await authClient.handleCallback();
         const exchange = await apiFetch<ExchangeResponse>("/auth/exchange", {
           method: "POST",
