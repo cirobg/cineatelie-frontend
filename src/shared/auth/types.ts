@@ -12,9 +12,10 @@ export interface ProviderTokens {
 }
 
 export interface AuthClient {
-  /** Starts the OAuth round trip. Navigates the browser away (to Google); callers should not
-   * expect code after this to run in the same page load. */
-  signIn(): Promise<void>;
+  /** Starts the OAuth round trip. Navigates the browser away (to the provider); callers should
+   * not expect code after this to run in the same page load. Production uses Google only;
+   * `github` exists for the dev-only provider test. */
+  signIn(provider?: "google" | "github"): Promise<void>;
 
   /** Called on `/auth/callback` once Google has redirected back through Supabase. Completes
    * the PKCE exchange and returns the provider tokens for `POST /auth/exchange`. */

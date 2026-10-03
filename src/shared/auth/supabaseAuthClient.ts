@@ -38,9 +38,9 @@ export class SupabaseAuthClient implements AuthClient {
     this.client = client;
   }
 
-  async signIn(): Promise<void> {
+  async signIn(provider: "google" | "github" = "google"): Promise<void> {
     const { error } = await this.client.auth.signInWithOAuth({
-      provider: "google",
+      provider,
       options: { redirectTo: env.oauthRedirectUrl },
     });
     if (error) {
