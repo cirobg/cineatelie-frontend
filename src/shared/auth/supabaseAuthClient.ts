@@ -11,10 +11,13 @@ import type { AuthClient, ProviderTokens } from "./types";
 function createSupabaseClient(): SupabaseClient {
   return createClient(env.supabaseUrl, env.supabasePublishableKey, {
     auth: {
-      // The access/refresh tokens go to POST /auth/exchange and never touch storage again
-      // (ADR-006) — persistSession/autoRefreshToken are off, and the custom storage below is
-      // a second, independent guard that refuses to write anything but the PKCE verifier.
-      persistSession: false,
+      // persistSession must stay TRUE. With false, supabase-js ignores the storage passed
+      // below and keeps the PKCE verifier in memory, which the redirect to Google discards
+      // (verified against the SDK, see pkceStorageWiring.test.ts). Session and refresh tokens
+      // are still never persisted: pkceVerifierOnlyStorage refuses every key except the
+      // verifier, and autoRefreshToken is off, so the tokens go to POST /auth/exchange and
+      // nothing else (ADR-006).
+      persistSession: true,
       autoRefreshToken: false,
       detectSessionInUrl: false,
       flowType: "pkce",

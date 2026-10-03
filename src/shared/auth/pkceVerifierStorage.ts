@@ -7,9 +7,8 @@
  *
  * Filters by key suffix (`-code-verifier`) — the stable pattern supabase-js itself uses
  * (`${storageKey}-code-verifier`) — rather than hardcoding the project-specific storage key.
- * Every other key is a deliberate no-op: even though `persistSession: false` should already
- * stop supabase-js writing a session, this is the second, independent line of defence the
- * spec asks for — a session/refresh token must never reach any Storage, full stop.
+ * Every other key is a deliberate no-op. This is what keeps a session/refresh token out of
+ * Storage while `persistSession` is true (which it must be -- see supabaseAuthClient.ts).
  */
 function isCodeVerifierKey(key: string): boolean {
   return key.endsWith("-code-verifier");
